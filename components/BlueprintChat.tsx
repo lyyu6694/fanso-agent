@@ -5,12 +5,13 @@ import { BlueprintChatService } from '../services/geminiService';
 import { GenerateContentResponse } from "@google/genai";
 
 interface BlueprintChatProps {
-  blueprint: AnalysisResult;
+  blueprint: AnalysisResult | null;
+  globalContext: string;
   initialHistory: ChatMessage[];
   onHistoryUpdate: (messages: ChatMessage[]) => void;
 }
 
-export const BlueprintChat: React.FC<BlueprintChatProps> = ({ blueprint, initialHistory, onHistoryUpdate }) => {
+export const BlueprintChat: React.FC<BlueprintChatProps> = ({ blueprint, globalContext, initialHistory, onHistoryUpdate }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
@@ -24,24 +25,28 @@ export const BlueprintChat: React.FC<BlueprintChatProps> = ({ blueprint, initial
   const chatServiceRef = useRef<BlueprintChatService | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Re-initialize chat service when blueprint or global context changes significantly
+  // (Using a ref to avoid recreating on every render, but updating if context changes)
   useEffect(() => {
-    if (blueprint && !chatServiceRef.current) {
-      chatServiceRef.current = new BlueprintChatService(blueprint);
-    }
-  }, [blueprint]);
+    chatServiceRef.current = new BlueprintChatService(blueprint, globalContext);
+  }, [blueprint, globalContext]);
 
   useEffect(() => {
     if (initialHistory && initialHistory.length > 0) {
       setMessages(initialHistory);
     } else {
+      const welcomeText = blueprint 
+        ? '你好！我是您的凡硕财税高级专家顾问。我已经详细分析了这份战略蓝图，您可以随时向我咨询关于实施细节、潜在风险或任何需要澄清的专业问题。'
+        : '你好！我是您的凡硕财税全局顾问。我可以基于您过往的分析历史为您提供咨询，或解答通用的财税战略问题。';
+
       setMessages([{
         id: 'init',
         role: 'model',
-        text: '你好！我是您的凡硕财税高级专家顾问。我已经详细分析了这份战略蓝图，您可以随时向我咨询关于实施细节、潜在风险或任何需要澄清的专业问题。',
+        text: welcomeText,
         timestamp: Date.now()
       }]);
     }
-  }, [initialHistory]);
+  }, [initialHistory, blueprint]);
 
   useEffect(() => {
     if (isOpen) scrollToBottom();
@@ -187,12 +192,12 @@ export const BlueprintChat: React.FC<BlueprintChatProps> = ({ blueprint, initial
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="fixed top-1/2 right-6 -translate-y-1/2 p-4 bg-gradient-to-br from-primary-600 to-secondary-600 text-white rounded-full shadow-2xl hover:shadow-primary-500/50 transition-all transform hover:scale-110 z-50 flex flex-col items-center justify-center gap-1 group border-4 border-white"
-        title="凡硕财税高级专家顾问"
+        className="fixed top-1/2 right-4 -translate-y-1/2 p-4 bg-gradient-to-br from-primary-600 to-secondary-600 text-white rounded-full shadow-2xl hover:shadow-primary-500/50 transition-all transform hover:scale-110 z-[100] flex flex-col items-center justify-center gap-1 group border-4 border-white"
+        title={blueprint ? "咨询当前报告" : "凡硕财税全局顾问"}
       >
         <Bot size={28} />
         <span className="text-[10px] font-bold mt-1 opacity-0 group-hover:opacity-100 absolute -bottom-6 transition-opacity whitespace-nowrap bg-slate-800 text-white px-2 py-1 rounded">
-          AI 顾问
+           {blueprint ? "报告顾问" : "全局顾问"}
         </span>
       </button>
     );
@@ -200,7 +205,7 @@ export const BlueprintChat: React.FC<BlueprintChatProps> = ({ blueprint, initial
 
   return (
     <div 
-        className={`fixed z-50 flex flex-col overflow-hidden transition-all duration-300 bg-white shadow-2xl border border-slate-200
+        className={`fixed z-[100] flex flex-col overflow-hidden transition-all duration-300 bg-white shadow-2xl border border-slate-200
             ${isExpanded 
                 ? 'bottom-6 right-6 w-[80vw] h-[80vh] sm:w-[600px] sm:h-[700px] rounded-2xl' 
                 : 'top-1/2 right-6 -translate-y-1/2 w-[90vw] h-[60vh] sm:w-[380px] sm:h-[500px] rounded-2xl'
@@ -213,8 +218,8 @@ export const BlueprintChat: React.FC<BlueprintChatProps> = ({ blueprint, initial
              <Bot size={20} className="text-white" />
           </div>
           <div>
-            <h3 className="font-bold text-sm">凡硕财税高级专家顾问</h3>
-            <p className="text-[10px] text-primary-100 opacity-90">Powered by Gemini 3 Pro</p>
+            <h3 className="font-bold text-sm">凡硕财税{blueprint ? '专家' : '全局'}顾问</h3>
+            <p className="text-[10px] text-primary-100 opacity-90">{blueprint ? 'Focus: Current Report' : 'Global Context Mode'}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -308,7 +313,7 @@ export const BlueprintChat: React.FC<BlueprintChatProps> = ({ blueprint, initial
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder="询问顾问..."
+            placeholder={blueprint ? "询问关于本报告的问题..." : "询问全局历史或通用问题..."}
             className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 focus:border-primary-500 outline-none text-sm transition-all"
             disabled={isTyping}
           />

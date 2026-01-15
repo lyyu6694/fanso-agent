@@ -9,14 +9,18 @@ const BASE_SYSTEM_INSTRUCTION = `
 
 任务：分析提供的音频/视频/文本内容，并结合你的专业知识库，生成一份高度组织化、视觉风格化的“战略蓝图”。
 
-重要新增要求：
+核心要求：
 1. **转写与发言人区分**：你必须根据输入内容，尽可能还原对话/内容的文字记录，并区分发言人。
 2. **多维分析**：
    - 核心脉络必须包含“战略聚焦(Strategic Focus)”和“关键举措(Key Action)”。
    - 必须分析潜在风险（Risks）和市场/战略机会（Opportunities）。
+   - **技术优势 (Advantages)** 必须包含具体的“性能指标/ROI估算 (Performance Metric)”。
+   - **目标价值 (Values)** 必须包含明确的“KPI/可衡量结果 (KPI)”。
 3. **结构化思维导图**：在核心脉络中提供层级结构。
 4. **行动代办**：在实施路径中提供具体的任务清单。
-5. **深度总结**：报告最后必须提供一份详尽的执行摘要（Executive Summary），综合核心发现、战略逻辑与预期成果，字数在300字以上。
+5. **深度总结与结论**：
+   - **核心结论 (Core Conclusion)**：必须简练有力，具有行动导向性。适当使用 [2-4字标签] 风格来强调战略重点（例如：“[降本增效] 通过数字化转型...”）。
+   - **执行摘要 (Executive Summary)**：必须高度浓缩，直接综合蓝图的核心发现。避免冗长的废话，聚焦于“关键发现”、“战略逻辑”与“预期成果”，字数控制在300-500字。
 
 能力调用：
 1. **知识库整合**：在回答或分析时，必须优先检索并引用“企业内部知识库”中的相关政策、案例或方法论。
@@ -29,18 +33,8 @@ const BASE_SYSTEM_INSTRUCTION = `
 4. 语气：像一位资深合伙人在向CEO做汇报，既有宏观视野，又有落地细节。
 
 输出结构（严格遵循 JSON Schema）：
-- transcript_segments: 对话原文片段。
-- key_quotes: 3-5个关键金句。
-- main_title: 主题标题
-- subtitle: 一句话总结
-- core_veins: 3个核心发展脉络（需包含 strategic_focus 和 key_action）
-- implementation_paths: 3个关键实施路径
-- advantages: 3个技术/运营优势
-- values: 3个目标与价值
-- risks: 3个潜在风险及应对
-- opportunities: 3个战略机会
-- core_conclusion: 核心结论（金句）
-- executive_summary: 详尽的全文总结段落（300字以上）
+- advantages 需包含 performance_metric
+- values 需包含 kpi
 `;
 
 const RESPONSE_SCHEMA = {
@@ -102,9 +96,10 @@ const RESPONSE_SCHEMA = {
           title: { type: Type.STRING },
           tag: { type: Type.STRING },
           features: { type: Type.ARRAY, items: { type: Type.STRING } },
-          impact: { type: Type.STRING }
+          impact: { type: Type.STRING },
+          performance_metric: { type: Type.STRING, description: "Quantifiable metric, e.g. 'Efficiency +30%', 'Cost -15%'" }
         },
-        required: ["title", "tag", "features", "impact"]
+        required: ["title", "tag", "features", "impact", "performance_metric"]
       }
     },
     values: {
@@ -115,9 +110,10 @@ const RESPONSE_SCHEMA = {
           title: { type: Type.STRING },
           tag: { type: Type.STRING },
           benefits: { type: Type.ARRAY, items: { type: Type.STRING } },
-          motto: { type: Type.STRING }
+          motto: { type: Type.STRING },
+          kpi: { type: Type.STRING, description: "Key Performance Indicator, e.g. 'NPS Score', 'Revenue Growth'" }
         },
-        required: ["title", "tag", "benefits", "motto"]
+        required: ["title", "tag", "benefits", "motto", "kpi"]
       }
     },
     risks: {
@@ -143,8 +139,8 @@ const RESPONSE_SCHEMA = {
         required: ["title", "description"]
       }
     },
-    core_conclusion: { type: Type.STRING },
-    executive_summary: { type: Type.STRING }
+    core_conclusion: { type: Type.STRING, description: "Action-oriented conclusion with strategic tags." },
+    executive_summary: { type: Type.STRING, description: "Comprehensive summary (300+ words) synthesizing key findings." }
   },
   required: ["main_title", "subtitle", "transcript_segments", "key_quotes", "core_veins", "implementation_paths", "advantages", "values", "risks", "opportunities", "core_conclusion", "executive_summary"]
 };
@@ -222,8 +218,8 @@ export const generateBlueprint = async (input: string | File[]): Promise<Analysi
         systemInstruction: getFullSystemInstruction(),
         responseMimeType: "application/json",
         responseSchema: RESPONSE_SCHEMA,
-        tools: [{ googleSearch: {} }], 
-        thinkingConfig: { thinkingBudget: 1024 } 
+        tools: [{ googleSearch: {} }],
+        // thinkingConfig removed to prevent timeouts/RPC errors in browser
       },
     });
 
@@ -250,17 +246,25 @@ export const generateBlueprint = async (input: string | File[]): Promise<Analysi
 export class BlueprintChatService {
   private chat: Chat;
 
-  constructor(blueprint: AnalysisResult) {
+  constructor(currentBlueprint: AnalysisResult | null, globalContext: string) {
     const apiKey = getApiKey();
     const ai = new GoogleGenAI({ apiKey });
     
-    const contextPrompt = `你正在与用户讨论一份已生成的“战略蓝图”。
-    蓝图内容如下：
-    ${JSON.stringify(blueprint)}
+    let contextPrompt = `你正在与用户进行对话。`;
     
-    请继续扮演“凡硕财税高级专家顾问”。
+    if (globalContext) {
+        contextPrompt += `\n\n=== 账户历史报告概览 ===\n${globalContext}\n你可以引用上述历史报告的标题和关键信息来回答用户，体现出你对该账户历史业务的了解。`;
+    }
+
+    if (currentBlueprint) {
+        contextPrompt += `\n\n=== 当前正在查看的战略蓝图 (核心上下文) ===\n${JSON.stringify(currentBlueprint)}\n请重点围绕这份当前蓝图进行深度解答。`;
+    } else {
+        contextPrompt += `\n\n用户当前没有查看特定的蓝图，请作为“凡硕财税全局顾问”，基于历史概览或通用专业知识回答问题。`;
+    }
+    
+    contextPrompt += `\n\n请继续扮演“凡硕财税高级专家顾问”。
     在回答时：
-    1. 优先结合已有的蓝图内容。
+    1. 优先结合已有的蓝图内容(如果有)。
     2. 检索内置知识库。
     3. 如果需要最新信息，使用 Google Search。
     `;

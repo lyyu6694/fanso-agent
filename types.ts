@@ -20,6 +20,7 @@ export interface Advantage {
   tag: string;
   features: string[];
   impact: string;
+  performance_metric: string; // New: e.g. "Efficiency +30%"
 }
 
 export interface Value {
@@ -27,6 +28,7 @@ export interface Value {
   tag: string;
   benefits: string[];
   motto: string;
+  kpi: string; // New: e.g. "NPS Score"
 }
 
 export interface Risk {

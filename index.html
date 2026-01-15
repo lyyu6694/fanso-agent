@@ -11,21 +11,34 @@
         theme: {
           extend: {
             colors: {
-              // Custom Dynamic Palette (Mapped to CSS Variables)
-              custom: {
-                50: 'rgb(var(--c-50) / <alpha-value>)',
-                100: 'rgb(var(--c-100) / <alpha-value>)',
-                200: 'rgb(var(--c-200) / <alpha-value>)',
-                300: 'rgb(var(--c-300) / <alpha-value>)',
-                400: 'rgb(var(--c-400) / <alpha-value>)',
-                500: 'rgb(var(--c-500) / <alpha-value>)',
-                600: 'rgb(var(--c-600) / <alpha-value>)',
-                700: 'rgb(var(--c-700) / <alpha-value>)',
-                800: 'rgb(var(--c-800) / <alpha-value>)',
-                900: 'rgb(var(--c-900) / <alpha-value>)',
-                950: 'rgb(var(--c-950) / <alpha-value>)',
+              // Dynamic Palette Mapped to CSS Variables
+              primary: {
+                50: 'rgb(var(--c-primary-50) / <alpha-value>)',
+                100: 'rgb(var(--c-primary-100) / <alpha-value>)',
+                200: 'rgb(var(--c-primary-200) / <alpha-value>)',
+                300: 'rgb(var(--c-primary-300) / <alpha-value>)',
+                400: 'rgb(var(--c-primary-400) / <alpha-value>)',
+                500: 'rgb(var(--c-primary-500) / <alpha-value>)',
+                600: 'rgb(var(--c-primary-600) / <alpha-value>)',
+                700: 'rgb(var(--c-primary-700) / <alpha-value>)',
+                800: 'rgb(var(--c-primary-800) / <alpha-value>)',
+                900: 'rgb(var(--c-primary-900) / <alpha-value>)',
+                950: 'rgb(var(--c-primary-950) / <alpha-value>)',
               },
-              // Warm Sand/Cream Neutrals (replacing cold Slate)
+              secondary: {
+                50: 'rgb(var(--c-secondary-50) / <alpha-value>)',
+                100: 'rgb(var(--c-secondary-100) / <alpha-value>)',
+                200: 'rgb(var(--c-secondary-200) / <alpha-value>)',
+                300: 'rgb(var(--c-secondary-300) / <alpha-value>)',
+                400: 'rgb(var(--c-secondary-400) / <alpha-value>)',
+                500: 'rgb(var(--c-secondary-500) / <alpha-value>)',
+                600: 'rgb(var(--c-secondary-600) / <alpha-value>)',
+                700: 'rgb(var(--c-secondary-700) / <alpha-value>)',
+                800: 'rgb(var(--c-secondary-800) / <alpha-value>)',
+                900: 'rgb(var(--c-secondary-900) / <alpha-value>)',
+                950: 'rgb(var(--c-secondary-950) / <alpha-value>)',
+              },
+              // Warm Sand/Cream Neutrals
               slate: {
                 50: '#fffaf5', // Cream
                 100: '#fff1e6', // Very light peach
@@ -40,31 +53,7 @@
                 900: '#1c1917', // Stone 900 (Blackish)
                 950: '#0c0a09',
               },
-              // Dopamine Primary: Vibrant Coral/Orange/Sunset
-              primary: {
-                50: '#fff7ed',
-                100: '#ffedd5',
-                200: '#fed7aa',
-                300: '#fdba74',
-                400: '#fb923c',
-                500: '#f97316', // Bright Orange
-                600: '#ea580c',
-                700: '#c2410c',
-                800: '#9a3412',
-                900: '#7c2d12',
-                950: '#431407',
-              },
-              // Dopamine Secondary: Hot Pink/Rose
-              secondary: {
-                50: '#fff1f2',
-                100: '#ffe4e6',
-                200: '#fecdd3',
-                300: '#fda4af',
-                400: '#fb7185',
-                500: '#f43f5e', // Rose
-                600: '#e11d48',
-              },
-              // Dopamine Accent: Sunshine Yellow
+              // Accent: Sunshine Yellow (Static for now)
               accent: {
                 400: '#facc15',
                 500: '#eab308',
@@ -78,6 +67,7 @@
               'blob': 'blob 7s infinite',
               'fade-in': 'fadeIn 0.5s ease-out forwards',
               'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+              'extract-up': 'extractUp 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards',
               'pulse-slow': 'pulse 3s infinite',
               'spin-slow': 'spin 3s linear infinite',
             },
@@ -95,6 +85,10 @@
               fadeInUp: {
                 '0%': { opacity: '0', transform: 'translateY(20px)' },
                 '100%': { opacity: '1', transform: 'translateY(0)' },
+              },
+              extractUp: {
+                '0%': { opacity: '0', transform: 'translateY(40px) scale(0.95)' },
+                '100%': { opacity: '1', transform: 'translateY(0) scale(1)' },
               }
             }
           }

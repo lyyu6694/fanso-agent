@@ -13,10 +13,8 @@ mermaid.initialize({
   theme: 'base',
   securityLevel: 'loose',
   fontFamily: '"Noto Sans SC", sans-serif',
-  flowchart: {
-    useMaxWidth: false,
-    htmlLabels: true,
-    curve: 'basis'
+  mindmap: {
+      useMaxWidth: false,
   }
 });
 
@@ -27,6 +25,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart }) => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
 
   useEffect(() => {
+    let isMounted = true;
     const renderDiagram = async () => {
       if (!chart) return;
       
@@ -35,19 +34,24 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart }) => {
       
       // Small delay to ensure DOM is ready and state is settled
       await new Promise(resolve => setTimeout(resolve, 500));
+      if (!isMounted) return;
 
       try {
         const id = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+        // Try rendering
         const { svg: renderedSvg } = await mermaid.render(id, chart);
-        setSvg(renderedSvg);
-        setStatus('success');
+        if (isMounted) {
+            setSvg(renderedSvg);
+            setStatus('success');
+        }
       } catch (error) {
         console.error('Mermaid render error:', error);
-        setStatus('error');
+        if (isMounted) setStatus('error');
       }
     };
 
     renderDiagram();
+    return () => { isMounted = false; };
   }, [chart]);
 
   const handleDownload = async (e: React.MouseEvent) => {
@@ -69,7 +73,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart }) => {
                 logging: false
             });
             const link = document.createElement('a');
-            link.download = `blueprint-architecture-${Date.now()}.png`;
+            link.download = `blueprint-mindmap-${Date.now()}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         } catch (err) {
@@ -79,12 +83,21 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart }) => {
     }
   };
 
+  const retry = () => {
+      const id = `mermaid-${Date.now()}`;
+      setStatus('loading');
+      mermaid.render(id, chart).then(({svg}) => {
+          setSvg(svg);
+          setStatus('success');
+      }).catch(e => setStatus('error'));
+  };
+
   return (
     <div 
         className={`relative group transition-all duration-300 bg-white overflow-hidden
         ${isExpanded 
             ? 'fixed inset-4 z-[9999] shadow-2xl rounded-2xl border border-slate-200 flex flex-col' 
-            : 'w-full h-full min-h-[500px] flex flex-col rounded-2xl'
+            : 'w-full h-full min-h-[600px] flex flex-col rounded-2xl'
         }`}
     >
        <style>{`
@@ -95,48 +108,27 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart }) => {
             width: 100%;
             height: 100%;
             overflow: auto;
-            background-color: #fafafa; /* Slate-50 equivalent */
+            background-color: #fafafa;
             background-image: radial-gradient(#e5e7eb 1px, transparent 1px);
             background-size: 20px 20px;
          }
          .mermaid-wrapper svg {
-           max-width: 100%;
+           max-width: none; /* Allow mindmap to expand */
            height: auto;
+           min-width: 100%;
          }
          
-         /* Node Entrance Animations */
-         .mermaid-wrapper .node {
-            opacity: 0;
-            animation: popIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+         /* Mindmap specific styling fixes if needed */
+         .mermaid-wrapper g.node rect, .mermaid-wrapper g.node circle, .mermaid-wrapper g.node path {
+             fill: white !important;
+             stroke: #cbd5e1 !important;
+             stroke-width: 2px !important;
          }
          
-         .mermaid-wrapper .edgePath {
-             opacity: 0;
-             animation: drawLine 0.8s ease-out 0.4s forwards;
-         }
-
-         @keyframes popIn {
-            from { opacity: 0; transform: scale(0.9) translateY(10px); }
-            to { opacity: 1; transform: scale(1) translateY(0); }
-         }
-         
-         @keyframes drawLine {
-            from { opacity: 0; }
-            to { opacity: 1; }
-         }
-
-         /* Interactive Node Styling */
-         .mermaid-wrapper .node rect, 
-         .mermaid-wrapper .node circle, 
-         .mermaid-wrapper .node polygon {
-           transition: all 0.3s ease;
-           cursor: default;
-         }
-         .mermaid-wrapper .node:hover rect, 
-         .mermaid-wrapper .node:hover circle,
-         .mermaid-wrapper .node:hover polygon {
-           filter: drop-shadow(0 8px 16px rgba(0,0,0,0.15));
-           stroke-width: 2px !important;
+         .mermaid-wrapper g.root rect, .mermaid-wrapper g.root circle, .mermaid-wrapper g.root path {
+             fill: #f8fafc !important; /* Slate-50 */
+             stroke: #f97316 !important; /* Primary */
+             stroke-width: 4px !important;
          }
        `}</style>
 
@@ -165,15 +157,15 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart }) => {
             {status === 'loading' && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-slate-50/80 backdrop-blur-sm z-10">
                     <Loader2 size={32} className="text-primary-500 animate-spin mb-3" />
-                    <p className="text-sm font-bold text-slate-500 animate-pulse">正在构建架构图谱...</p>
+                    <p className="text-sm font-bold text-slate-500 animate-pulse">正在绘制思维导图...</p>
                 </div>
             )}
 
             {status === 'error' && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-red-50/50 z-10">
                     <AlertCircle size={32} className="text-red-400 mb-3" />
-                    <p className="text-sm font-bold text-red-600">图谱生成失败</p>
-                    <button onClick={() => setStatus('loading')} className="mt-4 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg text-xs font-bold shadow-sm hover:bg-red-50">
+                    <p className="text-sm font-bold text-red-600">思维导图生成失败</p>
+                    <button onClick={retry} className="mt-4 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg text-xs font-bold shadow-sm hover:bg-red-50">
                         <RefreshCw size={12} className="inline mr-1"/> 重试
                     </button>
                 </div>
@@ -189,7 +181,7 @@ export const MermaidDiagram: React.FC<MermaidDiagramProps> = ({ chart }) => {
        
        {isExpanded && (
            <div className="bg-slate-50 p-3 text-center border-t border-slate-200">
-               <p className="text-xs text-slate-400 font-mono">System Architecture View • Generated by Mermaid.js</p>
+               <p className="text-xs text-slate-400 font-mono">Full-Text Strategy Mindmap</p>
            </div>
        )}
     </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { LayoutDashboard, AlertCircle, Sparkles, Command, History, Trash2, Clock, ChevronRight, X, LogOut, Settings, Hammer, PenTool, Braces, Layers } from 'lucide-react';
 import { TranscriptInput } from './components/TranscriptInput';
 import { BlueprintDisplay } from './components/BlueprintDisplay';
+import { BlueprintChat } from './components/BlueprintChat';
 import { Login } from './components/Login';
 import { SettingsModal } from './components/SettingsModal';
 import { AuthService } from './services/authService';
@@ -126,17 +127,22 @@ const App: React.FC = () => {
   };
 
   const updateChatHistory = (messages: ChatMessage[]) => {
-    if (!currentHistoryId) return;
-    
-    const updatedHistory = history.map(item => {
-      if (item.id === currentHistoryId) {
-        return { ...item, chatHistory: messages };
-      }
-      return item;
-    });
-    
-    setHistory(updatedHistory);
-    localStorage.setItem('fs_agent_history', JSON.stringify(updatedHistory));
+    // If viewing a historical/current report, save chat to it
+    if (currentHistoryId) {
+        const updatedHistory = history.map(item => {
+            if (item.id === currentHistoryId) {
+                return { ...item, chatHistory: messages };
+            }
+            return item;
+        });
+        setHistory(updatedHistory);
+        localStorage.setItem('fs_agent_history', JSON.stringify(updatedHistory));
+    } else {
+        // If "Global Chat" without specific report context, we might just keep it ephemeral 
+        // or store in a special "global" key. For now, ephemeral or tied to last session if we wanted.
+        // But requirements imply context aware. 
+        // We will pass `messages` back to BlueprintChat local state mostly.
+    }
   };
 
   const deleteHistoryItem = (e: React.MouseEvent, id: string) => {
@@ -208,7 +214,13 @@ const App: React.FC = () => {
     setCurrentHistoryId(null);
   };
 
+  // Determine current chat context
   const currentChatHistory = history.find(h => h.id === currentHistoryId)?.chatHistory || [];
+  
+  // Create global context string from history
+  const globalContextSummary = history.map(item => {
+      return `- [${new Date(item.date).toLocaleDateString()}] ${item.result.main_title}: ${item.result.subtitle}`;
+  }).join('\n');
 
   // --- Render Logic ---
 
@@ -462,6 +474,14 @@ const App: React.FC = () => {
       <footer className="py-8 text-center text-slate-400 text-sm font-medium relative z-10">
         <p>© {new Date().getFullYear()} 凡硕财税Agent · Powered by Gemini.</p>
       </footer>
+      
+      {/* GLOBAL CHAT ASSISTANT - Always available but contextual */}
+      <BlueprintChat 
+          blueprint={result} 
+          globalContext={globalContextSummary}
+          initialHistory={currentChatHistory} 
+          onHistoryUpdate={updateChatHistory} 
+      />
     </div>
   );
 };
