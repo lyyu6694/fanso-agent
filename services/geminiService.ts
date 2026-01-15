@@ -11,10 +11,12 @@ const BASE_SYSTEM_INSTRUCTION = `
 
 重要新增要求：
 1. **转写与发言人区分**：你必须根据输入内容，尽可能还原对话/内容的文字记录，并区分发言人。
-2. **多维分析**：除了核心脉络，必须分析潜在风险（Risks）和市场/战略机会（Opportunities）。
+2. **多维分析**：
+   - 核心脉络必须包含“战略聚焦(Strategic Focus)”和“关键举措(Key Action)”。
+   - 必须分析潜在风险（Risks）和市场/战略机会（Opportunities）。
 3. **结构化思维导图**：在核心脉络中提供层级结构。
 4. **行动代办**：在实施路径中提供具体的任务清单。
-5. **总结升华**：报告最后提供一段执行摘要（Executive Summary）。
+5. **深度总结**：报告最后必须提供一份详尽的执行摘要（Executive Summary），综合核心发现、战略逻辑与预期成果，字数在300字以上。
 
 能力调用：
 1. **知识库整合**：在回答或分析时，必须优先检索并引用“企业内部知识库”中的相关政策、案例或方法论。
@@ -31,14 +33,14 @@ const BASE_SYSTEM_INSTRUCTION = `
 - key_quotes: 3-5个关键金句。
 - main_title: 主题标题
 - subtitle: 一句话总结
-- core_veins: 3个核心发展脉络
+- core_veins: 3个核心发展脉络（需包含 strategic_focus 和 key_action）
 - implementation_paths: 3个关键实施路径
 - advantages: 3个技术/运营优势
 - values: 3个目标与价值
 - risks: 3个潜在风险及应对
 - opportunities: 3个战略机会
 - core_conclusion: 核心结论（金句）
-- executive_summary: 全文总结段落（200字左右）
+- executive_summary: 详尽的全文总结段落（300字以上）
 `;
 
 const RESPONSE_SCHEMA = {
@@ -72,9 +74,11 @@ const RESPONSE_SCHEMA = {
           title: { type: Type.STRING },
           tag: { type: Type.STRING },
           description: { type: Type.STRING },
-          icon: { type: Type.STRING }
+          icon: { type: Type.STRING },
+          strategic_focus: { type: Type.STRING, description: "2-4 words focus, e.g. Cost Efficiency" },
+          key_action: { type: Type.STRING, description: "Short action phrase, e.g. Deploy AI Agent" }
         },
-        required: ["title", "tag", "description", "icon"]
+        required: ["title", "tag", "description", "icon", "strategic_focus", "key_action"]
       }
     },
     implementation_paths: {

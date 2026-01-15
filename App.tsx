@@ -221,16 +221,57 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen font-sans text-slate-900 bg-slate-50 relative overflow-x-hidden selection:bg-primary-200 selection:text-primary-900">
       
-      {/* Interaction Blocker Overlay when Loading */}
+      {/* Loading Overlay - FULL SCREEN, HIGH Z-INDEX */}
       {loading && (
-        <div className="fixed inset-0 z-[100] bg-white/60 backdrop-blur-sm cursor-none transition-all duration-300"></div>
+        <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center p-4 bg-white/80 backdrop-blur-md transition-all duration-300">
+            <div className="bg-white p-10 rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full text-center relative overflow-hidden pointer-events-auto animate-fade-in-up">
+                {/* Background decoration inside card */}
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-400 via-secondary-500 to-primary-400 animate-gradient bg-[length:200%_auto]"></div>
+                
+                <div className="relative mb-8 h-24 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center opacity-10">
+                        <LayoutDashboard size={80} className="text-slate-400" />
+                    </div>
+                    <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-2xl flex items-center justify-center text-primary-600 shadow-inner">
+                        <CurrentLoadingIcon size={40} className="animate-bounce" />
+                    </div>
+                </div>
+
+                <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">正在构建活力蓝图</h3>
+                <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">AI Consultant Working</p>
+
+                <div className="h-12 flex items-center justify-center">
+                    <p className="text-primary-600 font-bold text-lg animate-fade-in-up key={loadingMsgIndex}">
+                        {LOADING_MESSAGES[loadingMsgIndex]}
+                    </p>
+                </div>
+              
+                {/* Progress Bar */}
+                <div className="mt-8 relative">
+                    <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
+                        <div 
+                            className="bg-gradient-to-r from-primary-400 to-secondary-500 h-3 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(249,115,22,0.4)]"
+                            style={{ width: `${progress}%` }}
+                        ></div>
+                    </div>
+                    <div className="flex justify-between text-xs font-bold text-slate-400 mt-2">
+                          <span>进度</span>
+                          <span>{Math.round(progress)}%</span>
+                    </div>
+                </div>
+
+                <p className="text-xs text-slate-400 mt-8 italic">
+                    正在调用 Gemini 3 Pro 深度思考模型，请稍候...
+                </p>
+            </div>
+        </div>
       )}
       
-      {/* Mouse Follower Bubble */}
+      {/* Mouse Follower Bubble - Only visible during loading */}
       {loading && (
         <div 
           ref={cursorBubbleRef}
-          className="fixed top-0 left-0 z-[101] pointer-events-none bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border-2 border-primary-100 text-primary-600 text-sm font-bold flex items-center gap-2 animate-pulse"
+          className="fixed top-0 left-0 z-[10000] pointer-events-none bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl shadow-2xl border-2 border-primary-100 text-primary-600 text-sm font-bold flex items-center gap-2 animate-pulse"
           style={{ willChange: 'transform' }}
         >
           <Sparkles size={16} className="animate-spin-slow text-secondary-500 fill-secondary-500" />
@@ -404,51 +445,6 @@ const App: React.FC = () => {
               <div className="flex items-start gap-3 p-4 bg-red-50 text-red-600 rounded-2xl border border-red-100 animate-fade-in shadow-lg shadow-red-100/50">
                 <AlertCircle className="shrink-0 mt-0.5" size={20} />
                 <p className="text-sm font-bold">{error}</p>
-              </div>
-            )}
-
-            {loading && (
-              <div className="fixed inset-0 z-[101] flex flex-col items-center justify-center p-4 pointer-events-none">
-                <div className="bg-white/90 backdrop-blur-xl p-10 rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full text-center relative overflow-hidden pointer-events-auto">
-                    {/* Background decoration inside card */}
-                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary-400 via-secondary-500 to-primary-400 animate-gradient bg-[length:200%_auto]"></div>
-                    
-                    <div className="relative mb-8 h-24 flex items-center justify-center">
-                        <div className="absolute inset-0 flex items-center justify-center opacity-10">
-                            <LayoutDashboard size={80} className="text-slate-400" />
-                        </div>
-                        <div className="relative z-10 w-20 h-20 bg-gradient-to-br from-primary-100 to-secondary-100 rounded-2xl flex items-center justify-center text-primary-600 shadow-inner">
-                            <CurrentLoadingIcon size={40} className="animate-bounce" />
-                        </div>
-                    </div>
-
-                    <h3 className="text-2xl font-black text-slate-800 tracking-tight mb-2">正在构建活力蓝图</h3>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-6">AI Consultant Working</p>
-
-                    <div className="h-12 flex items-center justify-center">
-                        <p className="text-primary-600 font-bold text-lg animate-fade-in-up key={loadingMsgIndex}">
-                            {LOADING_MESSAGES[loadingMsgIndex]}
-                        </p>
-                    </div>
-                  
-                    {/* Progress Bar */}
-                    <div className="mt-8 relative">
-                        <div className="w-full bg-slate-100 rounded-full h-3 overflow-hidden">
-                            <div 
-                                className="bg-gradient-to-r from-primary-400 to-secondary-500 h-3 rounded-full transition-all duration-300 ease-out shadow-[0_0_10px_rgba(249,115,22,0.4)]"
-                                style={{ width: `${progress}%` }}
-                            ></div>
-                        </div>
-                        <div className="flex justify-between text-xs font-bold text-slate-400 mt-2">
-                             <span>进度</span>
-                             <span>{Math.round(progress)}%</span>
-                        </div>
-                    </div>
-
-                    <p className="text-xs text-slate-400 mt-8 italic">
-                       正在调用 Gemini 3 Pro 深度思考模型，请稍候...
-                    </p>
-                </div>
               </div>
             )}
           </div>

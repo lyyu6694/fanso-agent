@@ -4,6 +4,8 @@ export interface CoreVein {
   tag: string;
   description: string;
   icon: string;
+  strategic_focus: string; // New: e.g., "Cost Reduction", "Market Share"
+  key_action: string;      // New: e.g., "Automate Workflow"
 }
 
 export interface ImplementationPath {
@@ -53,10 +55,10 @@ export interface AnalysisResult {
   implementation_paths: ImplementationPath[];
   advantages: Advantage[];
   values: Value[];
-  risks: Risk[]; // New
-  opportunities: Opportunity[]; // New
+  risks: Risk[]; 
+  opportunities: Opportunity[]; 
   core_conclusion: string;
-  executive_summary: string; // New
+  executive_summary: string; 
 }
 
 export interface ChatMessage {
