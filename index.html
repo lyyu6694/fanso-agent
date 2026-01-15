@@ -1,0 +1,147 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>凡硕财税Agent</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              // Custom Dynamic Palette (Mapped to CSS Variables)
+              custom: {
+                50: 'rgb(var(--c-50) / <alpha-value>)',
+                100: 'rgb(var(--c-100) / <alpha-value>)',
+                200: 'rgb(var(--c-200) / <alpha-value>)',
+                300: 'rgb(var(--c-300) / <alpha-value>)',
+                400: 'rgb(var(--c-400) / <alpha-value>)',
+                500: 'rgb(var(--c-500) / <alpha-value>)',
+                600: 'rgb(var(--c-600) / <alpha-value>)',
+                700: 'rgb(var(--c-700) / <alpha-value>)',
+                800: 'rgb(var(--c-800) / <alpha-value>)',
+                900: 'rgb(var(--c-900) / <alpha-value>)',
+                950: 'rgb(var(--c-950) / <alpha-value>)',
+              },
+              // Warm Sand/Cream Neutrals (replacing cold Slate)
+              slate: {
+                50: '#fffaf5', // Cream
+                100: '#fff1e6', // Very light peach
+                200: '#fed7aa', // Peach
+                300: '#fdba74',
+                400: '#fb923c',
+                500: '#78716c', // Keeping text readable (Stone 500)
+                600: '#57534e', // Stone 600
+                700: '#44403c', // Stone 700
+                800: '#292524', // Stone 800
+                850: '#231f1e', 
+                900: '#1c1917', // Stone 900 (Blackish)
+                950: '#0c0a09',
+              },
+              // Dopamine Primary: Vibrant Coral/Orange/Sunset
+              primary: {
+                50: '#fff7ed',
+                100: '#ffedd5',
+                200: '#fed7aa',
+                300: '#fdba74',
+                400: '#fb923c',
+                500: '#f97316', // Bright Orange
+                600: '#ea580c',
+                700: '#c2410c',
+                800: '#9a3412',
+                900: '#7c2d12',
+                950: '#431407',
+              },
+              // Dopamine Secondary: Hot Pink/Rose
+              secondary: {
+                50: '#fff1f2',
+                100: '#ffe4e6',
+                200: '#fecdd3',
+                300: '#fda4af',
+                400: '#fb7185',
+                500: '#f43f5e', // Rose
+                600: '#e11d48',
+              },
+              // Dopamine Accent: Sunshine Yellow
+              accent: {
+                400: '#facc15',
+                500: '#eab308',
+              }
+            },
+            fontFamily: {
+              serif: ['"Noto Serif SC"', '"Songti SC"', 'Georgia', 'serif'],
+              sans: ['"Noto Sans SC"', 'system-ui', '-apple-system', 'sans-serif'],
+            },
+            animation: {
+              'blob': 'blob 7s infinite',
+              'fade-in': 'fadeIn 0.5s ease-out forwards',
+              'fade-in-up': 'fadeInUp 0.6s ease-out forwards',
+              'pulse-slow': 'pulse 3s infinite',
+              'spin-slow': 'spin 3s linear infinite',
+            },
+            keyframes: {
+              blob: {
+                '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                '100%': { transform: 'translate(0px, 0px) scale(1)' },
+              },
+              fadeIn: {
+                '0%': { opacity: '0' },
+                '100%': { opacity: '1' },
+              },
+              fadeInUp: {
+                '0%': { opacity: '0', transform: 'translateY(20px)' },
+                '100%': { opacity: '1', transform: 'translateY(0)' },
+              }
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        background-color: #fffaf5; /* Cream background */
+        color: #1c1917;
+      }
+      /* Custom scrollbar */
+      ::-webkit-scrollbar {
+        width: 8px;
+        height: 8px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #fff1e6; 
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #fdba74; 
+        border-radius: 4px;
+      }
+      ::-webkit-scrollbar-thumb:hover {
+        background: #fb923c; 
+      }
+      @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&family=Noto+Serif+SC:wght@400;700&display=swap');
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
+    "html2canvas": "https://esm.sh/html2canvas@^1.4.1",
+    "jspdf": "https://esm.sh/jspdf@^2.5.1",
+    "mermaid": "https://esm.sh/mermaid@10.6.1",
+    "pptxgenjs": "https://esm.sh/pptxgenjs@3.12.0",
+    "mammoth": "https://esm.sh/mammoth@1.6.0",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>

@@ -1,0 +1,5 @@
+{
+  "name": "凡硕财税Agent",
+  "description": "Transforms unstructured meeting transcripts and brainstorming sessions into high-level strategic visual blueprints using Gemini 1.5 Pro.",
+  "requestFramePermissions": []
+}
