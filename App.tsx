@@ -9,6 +9,44 @@ import { AuthService } from './services/authService';
 import { generateBlueprint } from './services/geminiService';
 import { AnalysisResult, HistoryItem, User, ChatMessage } from './types';
 
+// --- Theme Helpers (Duplicated here to ensure root-level execution without circular deps) ---
+const hexToRgb = (hex: string) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) } : { r: 0, g: 0, b: 0 };
+};
+
+const mixColors = (c1: {r:number,g:number,b:number}, c2: {r:number,g:number,b:number}, weight: number) => {
+    const w = 2 * weight - 1;
+    const w1 = ((w * 0 === -1 ? w : (w + 0) / (1 + w * 0)) + 1) / 2;
+    const w2 = 1 - w1;
+    return {
+        r: Math.round(w1 * c1.r + w2 * c2.r),
+        g: Math.round(w1 * c1.g + w2 * c2.g),
+        b: Math.round(w1 * c1.b + w2 * c2.b)
+    };
+};
+
+const generatePalette = (hex: string) => {
+  const base = hexToRgb(hex);
+  const white = { r: 255, g: 255, b: 255 };
+  const black = { r: 0, g: 0, b: 0 };
+  
+  return {
+    50: mixColors(white, base, 0.95),
+    100: mixColors(white, base, 0.9),
+    200: mixColors(white, base, 0.75),
+    300: mixColors(white, base, 0.6),
+    400: mixColors(white, base, 0.3),
+    500: base,
+    600: mixColors(black, base, 0.1),
+    700: mixColors(black, base, 0.3),
+    800: mixColors(black, base, 0.5),
+    900: mixColors(black, base, 0.7),
+    950: mixColors(black, base, 0.85),
+  };
+};
+// -----------------------------------------------------------------------------------------
+
 const LOADING_MESSAGES = [
   "正在调用凡硕专家知识库...",
   "正在全网搜索最新财税政策...",
@@ -51,11 +89,28 @@ const App: React.FC = () => {
   // Refs for mouse follower
   const cursorBubbleRef = useRef<HTMLDivElement>(null);
 
-  // Check login on mount
+  // --- Initialize Theme & Auth ---
   useEffect(() => {
+    // 1. Initialize Theme Colors (Dopamine Default)
+    const storedPrimary = localStorage.getItem('fs_theme_primary') || '#f97316'; // Orange-500
+    const storedSecondary = localStorage.getItem('fs_theme_secondary') || '#f43f5e'; // Rose-500
+    
+    const root = document.documentElement;
+    const p = generatePalette(storedPrimary);
+    const s = generatePalette(storedSecondary);
+
+    Object.entries(p).forEach(([shade, val]) => {
+        root.style.setProperty(`--c-primary-${shade}`, `${val.r} ${val.g} ${val.b}`);
+    });
+    Object.entries(s).forEach(([shade, val]) => {
+        root.style.setProperty(`--c-secondary-${shade}`, `${val.r} ${val.g} ${val.b}`);
+    });
+
+    // 2. Auth Check
     const currentUser = AuthService.getCurrentUser();
     if (currentUser) setUser(currentUser);
 
+    // 3. Load History
     const savedHistory = localStorage.getItem('fs_agent_history');
     if (savedHistory) {
       try {
@@ -137,11 +192,6 @@ const App: React.FC = () => {
         });
         setHistory(updatedHistory);
         localStorage.setItem('fs_agent_history', JSON.stringify(updatedHistory));
-    } else {
-        // If "Global Chat" without specific report context, we might just keep it ephemeral 
-        // or store in a special "global" key. For now, ephemeral or tied to last session if we wanted.
-        // But requirements imply context aware. 
-        // We will pass `messages` back to BlueprintChat local state mostly.
     }
   };
 
